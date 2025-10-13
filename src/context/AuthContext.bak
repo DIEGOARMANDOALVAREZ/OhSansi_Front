@@ -1,0 +1,64 @@
+// src/context/AuthContext.tsx
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { perfil, logout as svcLogout } from "../services/auth";
+
+export type Rol = { id: string; nombre: string; slug: string };
+export type Usuario = { id: string; nombres: string; apellidos: string; correo: string; roles: Rol[] };
+
+type Ctx = {
+  user: Usuario | null;
+  loading: boolean;
+  refresh: () => Promise<void>;
+  logout: () => Promise<void>;
+  hasRole: (slug: string) => boolean;
+  hasAnyRole: (slugs: string[]) => boolean;
+};
+
+// 👇 OJO: NO exportamos el contexto (evita export inestable tipo "AuthCtx")
+const AuthContext = createContext<Ctx | null>(null);
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<Usuario | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const hasRole = useCallback((slug: string) => !!user?.roles?.some(r => r.slug === slug), [user]);
+  const hasAnyRole = useCallback((slugs: string[]) => !!user?.roles?.some(r => slugs.includes(r.slug)), [user]);
+
+  const refresh = useCallback(async () => {
+    const token = localStorage.getItem("ohsansi_token");
+    if (!token) { setUser(null); return; } // no llames perfil sin token
+    try {
+      const me = await perfil();
+      setUser(me);
+    } catch {
+      setUser(null);
+    }
+  }, []);
+
+  const logout = useCallback(async () => {
+    await svcLogout(); // limpia token/storage adentro
+    setUser(null);
+  }, []);
+
+  useEffect(() => {
+    const cached = localStorage.getItem("usuario");
+    if (cached) { try { setUser(JSON.parse(cached)); } catch {} }
+    (async () => {
+      setLoading(true);
+      await refresh();
+      setLoading(false);
+    })();
+  }, [refresh]);
+
+  return (
+    <AuthContext.Provider value={{ user, loading, refresh, logout, hasRole, hasAnyRole }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+}

@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+html, body, #root { height: 100%; }
+
+
+/* --- Tarjeta oscura y tabla oscura --- */
+.card-dark {
+  @apply rounded-3xl border border-white/10 bg-slate-900/70 shadow-2xl backdrop-blur-xl text-slate-100;
+}
+.table-dark {
+  @apply w-full text-sm text-slate-100;
+}
+.table-dark thead {
+  @apply bg-slate-800/70 text-slate-100;
+}
+.table-dark tbody tr {
+  @apply border-t border-white/10;
+}
+.table-dark th,
+.table-dark td {
+  @apply px-3 py-2;
+}
+
+/* --- Inputs/Select estilo oscuro (mejorados) --- */
+.input-dark,
+.select-dark {
+  @apply w-full rounded-xl border border-white/10 bg-slate-800/80
+         px-3 py-2 text-sm text-slate-100 placeholder-slate-400
+         outline-none transition;
+}
+.input-dark:focus,
+.select-dark:focus {
+  @apply ring-2 ring-cyan-400/30 border-cyan-400/40;
+}
+
+/* Radios en oscuro */
+.radio-dark {
+  @apply accent-cyan-500;
+}
+
+/* Botones */
+.btn {
+  @apply rounded-xl px-3 py-2 border border-slate-300 bg-white text-slate-800
+         hover:bg-slate-50 transition disabled:opacity-60;
+}
+.btn-primary {
+  @apply rounded-xl px-4 py-2 bg-cyan-600 text-white font-semibold
+         shadow hover:bg-cyan-500 disabled:opacity-60;
+}
+
+/* Card oscura tipo glass */
+.mockup-card {
+  @apply rounded-3xl border border-white/10 bg-slate-900/80 shadow-2xl backdrop-blur-xl p-6 text-slate-100 relative;
+}
+.mockup-title {
+  @apply text-lg md:text-xl font-bold text-white;
+}
+.mockup-subtitle {
+  @apply text-sm text-slate-300 mt-1 mb-5;
+}
+
+/* Etiquetas, ayuda */
+.mockup-label {
+  @apply block text-sm font-medium mb-1 text-slate-200;
+}
+.mockup-help {
+  @apply mt-1 text-xs text-slate-400;
+}
+
+/* Inputs/selects estilo mockup (oscuros, redondeados) */
+.mockup-input {
+  @apply w-full rounded-xl bg-slate-800/70 border border-white/10 px-3 py-2.5 text-sm text-slate-100
+         placeholder-slate-400 outline-none transition;
+}
+.mockup-input:focus {
+  @apply ring-2 ring-cyan-400/30 border-cyan-400/40;
+}
+
+/* Para selects simples: usamos input + caret visual */
+.mockup-select {
+  @apply w-full rounded-xl bg-slate-800/70 border border-white/10 px-3 py-2.5 text-sm text-slate-100
+         placeholder-slate-400 outline-none transition pr-8;
+}
+.mockup-select:focus {
+  @apply ring-2 ring-cyan-400/30 border-cyan-400/40;
+}
+.mockup-caret {
+  @apply pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-base;
+}
+
+/* Radios en oscuro */
+.radio-dark { @apply accent-cyan-500; }
+
+/* Chips informativos */
+.mockup-chip {
+  @apply rounded-full px-3 py-1 text-xs font-semibold bg-slate-800/80 text-slate-200 border border-white/10;
+}
+.mockup-chip.subtle { @apply text-slate-300; }
+
+/* Botones pill */
+.btn-pill {
+  @apply rounded-full px-5 py-2 text-sm font-semibold border border-slate-300 bg-white text-slate-800 hover:bg-slate-50;
+}
+.btn-pill-primary {
+  @apply rounded-full px-6 py-2 text-sm font-semibold bg-cyan-600 text-white shadow hover:bg-cyan-500 disabled:opacity-60;
+}
+
+/* Utilidades existentes reutilizadas */
+.card-dark { @apply rounded-3xl border border-white/10 bg-slate-900/70 shadow-2xl backdrop-blur-xl; }
+
+/* Caja del combobox (look oscuro coherente con mockup) */
+.mockup-combo {
+  @apply w-full rounded-xl bg-slate-800/70 border border-white/10 px-3 py-2.5
+         text-sm text-slate-100 outline-none transition;
+}
+.mockup-combo:focus-within { @apply ring-2 ring-cyan-400/30 border-cyan-400/40; }
+
+/* Select real (ya lo tienes, lo dejo por si acaso) */
+.mockup-select-real {
+  @apply w-full appearance-none rounded-xl bg-slate-800/70 border border-white/10
+         px-3 py-2.5 pr-8 text-sm text-slate-100 placeholder-slate-400
+         outline-none transition;
+}
+.mockup-select-real:focus { @apply ring-2 ring-cyan-400/30 border-cyan-400/40; }
+
+/* Caret genérico para select/combobox */
+.mockup-caret { @apply pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-base; }
+
+/* Radio oscuro */
+.radio-dark { @apply h-4 w-4 rounded-full border-white/20 bg-slate-800/70 text-cyan-400; }
