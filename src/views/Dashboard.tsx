@@ -1,20 +1,40 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { hasAnyRole, pathSegunRoles } from "../utils/roleRedirect";
 
 export default function Dashboard() {
-  const { user, hasRole, logout } = useAuth();
+  const { user: authUser, logout } = useAuth();
 
-  const nombre = user?.nombres ?? "Usuario";
-  const roles: Array<{ slug: string; nombre: string }> = user?.roles ?? [];
+  const nombre = authUser?.nombres ?? "Cargando";
+  const roles: Array<{ slug: string; nombre: string }> = authUser?.roles ?? [];
   const initials = (() => {
-    const partes = `${user?.nombres ?? ""} ${user?.apellidos ?? ""}`.trim().split(/\s+/);
-    return partes.slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "").join("");
+    const partes = `${authUser?.nombres ?? ""} ${authUser?.apellidos ?? ""}`
+      .trim()
+      .split(/\s+/);
+    return partes
+      .slice(0, 2)
+      .map((p) => p[0]?.toUpperCase() ?? "")
+      .join("");
   })();
 
-  const puedeAdmin = hasRole("administrador");
-  const puedeEval = hasRole("responsable") || hasRole("evaluador");
-  const puedeCom = hasRole("comunicaciones");
+  // Roles normalizados mediante helpers
+  const puedeAdmin = hasAnyRole(authUser, "ADMIN", "ADMINISTRADOR");
+  const puedeEval = hasAnyRole(
+    authUser,
+    "RESPONSABLE",
+    "RESPONSABLE_ACADEMICO",
+    "EVALUADOR"
+  );
+  const puedeCom = hasAnyRole(authUser, "COMUNICACIONES");
+
+  // Para la tarjeta de "Evaluaciones" priorizamos su módulo específico
+  const evaluadorPath =
+    hasAnyRole(authUser, "RESPONSABLE", "RESPONSABLE_ACADEMICO")
+      ? "/responsable/panel"
+      : hasAnyRole(authUser, "EVALUADOR")
+      ? "/evaluador/panel"
+      : pathSegunRoles(authUser) ?? "/dashboard";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950">
@@ -35,7 +55,6 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Menú rápido de ADMIN en el topbar */}
             {puedeAdmin && (
               <nav className="hidden items-center gap-2 md:flex">
                 <Link
@@ -59,7 +78,6 @@ export default function Dashboard() {
               </nav>
             )}
 
-            {/* Roles chips */}
             <div className="hidden gap-2 md:flex">
               {roles.length > 0 ? (
                 roles.map((r) => (
@@ -78,18 +96,15 @@ export default function Dashboard() {
               )}
             </div>
 
-            {/* Avatar + logout */}
             <div className="flex items-center gap-2">
               <div
                 className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-slate-800/60 text-sm font-bold text-slate-200"
-                title={`${user?.nombres ?? ""} ${user?.apellidos ?? ""}`}
+                title={`${authUser?.nombres ?? ""} ${authUser?.apellidos ?? ""}`}
               >
                 {initials || "U"}
               </div>
               <button
-                onClick={() => {
-                  void logout();
-                }}
+                onClick={() => void logout()}
                 className="rounded-xl bg-rose-500 px-3 py-2 text-xs font-semibold text-white shadow hover:bg-rose-400"
                 title="Cerrar sesión"
               >
@@ -102,16 +117,18 @@ export default function Dashboard() {
 
       {/* Contenido */}
       <main className="mx-auto max-w-6xl px-4 py-8 md:px-6 md:py-10">
-        {/* Bienvenida */}
         <section className="mb-6">
           <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/60 p-6 backdrop-blur-xl shadow-2xl">
             <div className="pointer-events-none absolute -inset-1 -z-10 rounded-3xl bg-gradient-to-tr from-cyan-400 to-indigo-500 opacity-20 blur-2xl" />
-            <h2 className="text-xl font-extrabold tracking-tight text-white md:text-2xl">Bienvenido(a), {nombre}</h2>
-            <p className="mt-1 text-sm text-slate-300">Accede a tus módulos según tu rol institucional.</p>
+            <h2 className="text-xl font-extrabold tracking-tight text-white md:text-2xl">
+              Bienvenido(a), {nombre}
+            </h2>
+            <p className="mt-1 text-sm text-slate-300">
+              Accede a tus módulos según tu rol institucional.
+            </p>
           </div>
         </section>
 
-        {/* Accesos rápidos por rol */}
         <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {puedeAdmin && (
             <Link
@@ -125,10 +142,18 @@ export default function Dashboard() {
                 </svg>
               </div>
               <h3 className="text-lg font-bold text-white">Administración</h3>
-              <p className="mt-1 text-sm text-slate-300">Gestión de usuarios, roles y configuración del sistema.</p>
+              <p className="mt-1 text-sm text-slate-300">
+                Gestión de usuarios, roles y configuración del sistema.
+              </p>
               <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-cyan-300">
                 Entrar
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="translate-x-0 transition group-hover:translate-x-0.5">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="translate-x-0 transition group-hover:translate-x-0.5"
+                >
                   <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
                 </svg>
               </span>
@@ -137,7 +162,7 @@ export default function Dashboard() {
 
           {puedeEval && (
             <Link
-              to="/evaluador"
+              to={evaluadorPath}
               className="group relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/70 p-5 shadow-2xl transition hover:border-cyan-400/40 hover:bg-slate-900/80"
             >
               <div className="pointer-events-none absolute -inset-1 -z-10 rounded-3xl bg-gradient-to-br from-cyan-400/20 to-indigo-500/20 opacity-50 blur-2xl transition group-hover:opacity-80" />
@@ -147,10 +172,18 @@ export default function Dashboard() {
                 </svg>
               </div>
               <h3 className="text-lg font-bold text-white">Evaluaciones</h3>
-              <p className="mt-1 text-sm text-slate-300">Registro, seguimiento y clasificación de evaluaciones.</p>
+              <p className="mt-1 text-sm text-slate-300">
+                Registro, seguimiento y clasificación de evaluaciones.
+              </p>
               <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-cyan-300">
                 Entrar
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="translate-x-0 transition group-hover:translate-x-0.5">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="translate-x-0 transition group-hover:translate-x-0.5"
+                >
                   <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
                 </svg>
               </span>
@@ -169,10 +202,18 @@ export default function Dashboard() {
                 </svg>
               </div>
               <h3 className="text-lg font-bold text-white">Comunicaciones</h3>
-              <p className="mt-1 text-sm text-slate-300">Publicaciones, anuncios y gestión de contenidos.</p>
+              <p className="mt-1 text-sm text-slate-300">
+                Publicaciones, anuncios y gestión de contenidos.
+              </p>
               <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-cyan-300">
                 Entrar
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="translate-x-0 transition group-hover:translate-x-0.5">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="translate-x-0 transition group-hover:translate-x-0.5"
+                >
                   <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
                 </svg>
               </span>
@@ -180,7 +221,6 @@ export default function Dashboard() {
           )}
         </section>
 
-        {/* Acciones generales */}
         <section className="mt-6">
           <div className="flex flex-col items-stretch gap-3 md:flex-row md:items-center">
             <Link
@@ -190,9 +230,7 @@ export default function Dashboard() {
               Ir al panel principal
             </Link>
             <button
-              onClick={() => {
-                void logout();
-              }}
+              onClick={() => void logout()}
               className="inline-flex items-center justify-center rounded-xl bg-rose-500 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-rose-400"
             >
               Cerrar sesión

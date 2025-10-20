@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const cached = localStorage.getItem("usuario");
-    if (cached) { try { setUser(JSON.parse(cached)); } catch {} }
+    if (cached) { try { setUser(JSON.parse(cached)); } catch { /* ignore parse error */ } }
     (async () => {
       setLoading(true);
       await refresh();
