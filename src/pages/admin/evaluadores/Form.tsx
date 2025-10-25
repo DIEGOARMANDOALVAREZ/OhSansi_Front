@@ -16,12 +16,12 @@ export type Evaluador = {
   id?: string;
   nombres: string;
   apellidos: string;
-  ci: string; // 👈 NUEVO
+  ci: string;
   correo: string;
   telefono?: string | null;
   rol: "EVALUADOR";
-  area_id: number[]; // Múltiples áreas
-  nivel_id: string | number; // Nivel único
+  area_id: number[];
+  nivel_id: string | number;
   asociaciones: Array<{ area_id: string; nivel_id?: string | null }>;
 };
 
@@ -195,7 +195,7 @@ export default function EvaluadorForm() {
   const [form, setForm] = useState<Evaluador>({
     nombres: "",
     apellidos: "",
-    ci: "",        // 👈 NUEVO
+    ci: "",
     correo: "",
     telefono: "",
     rol: "EVALUADOR",
@@ -210,11 +210,9 @@ export default function EvaluadorForm() {
   const [saving, setSaving] = useState(false);
   const [loadingCatalogos, setLoadingCatalogos] = useState(true);
 
-  // Token modal (opcional en edición)
   const [tokenPlain, setTokenPlain] = useState<string | null>(null);
   const [tokenModalOpen, setTokenModalOpen] = useState(false);
 
-  // Carga de catálogos
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -229,7 +227,6 @@ export default function EvaluadorForm() {
     };
   }, []);
 
-  // Carga de evaluador si es edición
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -266,7 +263,6 @@ export default function EvaluadorForm() {
     e.preventDefault();
     setSaving(true);
     try {
-      // Generar asociaciones a partir de area_id y nivel_id
       const asociaciones = form.area_id.map((aid) => ({
         area_id: String(aid),
         nivel_id: form.nivel_id === "" ? null : String(form.nivel_id),
@@ -467,7 +463,7 @@ export default function EvaluadorForm() {
               </div>
             </form>
 
-            {/* Modal token emitido (opcional) */}
+            {/* Modal token emitido */}
             {tokenModalOpen && (
               <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4">
                 <div className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-900 p-5 text-white shadow-2xl">

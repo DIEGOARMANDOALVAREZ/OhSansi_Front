@@ -14,7 +14,7 @@ export type Evaluador = {
   id?: string | number;
   nombres: string;
   apellidos: string;
-  ci?: string;                 // 👈 NUEVO
+  ci?: string;
   correo: string;
   telefono?: string | null;
   rol: "EVALUADOR";
@@ -30,7 +30,6 @@ export type EvaluadorFilters = {
   search?: string;
   area_id?: string | number;
   nivel_id?: string | number;
-  estado?: "activo" | "inactivo" | string;
   page?: number;
   per_page?: number;
 };
@@ -40,14 +39,13 @@ export type EvaluadorRow = {
   id: string | number;
   nombres: string;
   apellidos: string;
-  ci?: string;                  // 👈 NUEVO
+  ci?: string;
   correo: string;
   telefono?: string | null;
   rol: "EVALUADOR";
   asociaciones: EvaluadorAsociacion[];
   area: { nombre: string };
   nivel: { nombre: string } | null;
-  estado: boolean;
 };
 
 export type PaginationMeta = {
@@ -57,36 +55,19 @@ export type PaginationMeta = {
   total: number;
 };
 
-/** Estructura esperada del paginado de Laravel */
 export type EvaluadorPagination = PaginationMeta & {
   data: EvaluadorRow[];
 };
 
-/** Tipo de fila cruda que devuelve tu API (mínimo necesario) */
 type RawEvaluadorAPI = {
   id: string | number;
   nombres: string;
   apellidos: string;
-  ci?: string | null;          // 👈 NUEVO
+  ci?: string | null;
   correo: string;
   telefono?: string | null;
   asociaciones?: Array<{ area_id: string | number; nivel_id?: string | number | null }>;
-  estado?: boolean | number | string;
 };
-
-/* =========================
-   Helpers de transformación
-   ========================= */
-
-function asociacionesFromForm(e: Evaluador): EvaluadorAsociacion[] {
-  if (Array.isArray(e.area_id) && e.area_id.length > 0) {
-    return e.area_id.map((a) => ({
-      area_id: a,
-      nivel_id: e.nivel_id ?? null,
-    }));
-  }
-  return e.asociaciones ?? [];
-}
 
 function deriveAreaNivelStrings(asociaciones: EvaluadorAsociacion[] | undefined) {
   if (!asociaciones || asociaciones.length === 0) {
@@ -96,10 +77,6 @@ function deriveAreaNivelStrings(asociaciones: EvaluadorAsociacion[] | undefined)
   const niveles = asociaciones.map((a) => (a.nivel_id ?? "—")).join(", ");
   return { area: areas, nivel: niveles };
 }
-
-/* ================
-   Servicios REST
-   ================ */
 
 export async function fetchEvaluadores(
   params: EvaluadorFilters = {}
@@ -127,7 +104,6 @@ export async function fetchEvaluadores(
       asociaciones,
       area: { nombre: area },
       nivel: { nombre: nivel },
-      estado: typeof raw.estado === "boolean" ? raw.estado : Boolean(raw.estado),
     };
   });
 
@@ -149,6 +125,16 @@ export async function getEvaluador(id: string | number): Promise<Evaluador> {
   return { ...data, area_id, nivel_id };
 }
 
+function asociacionesFromForm(e: Evaluador): EvaluadorAsociacion[] {
+  if (Array.isArray(e.area_id) && e.area_id.length > 0) {
+    return e.area_id.map((a) => ({
+      area_id: a,
+      nivel_id: e.nivel_id ?? null,
+    }));
+  }
+  return e.asociaciones ?? [];
+}
+
 export async function createEvaluador(payload: Evaluador): Promise<Evaluador> {
   const asociaciones = asociacionesFromForm(payload);
   const body = { ...payload, asociaciones };
@@ -166,38 +152,17 @@ export async function updateEvaluador(
   return data.data;
 }
 
-export async function inactivarEvaluador(
-  id: string | number
-): Promise<{ message?: string }> {
-  const { data } = await api.delete<{ message?: string }>(`/evaluadores/${id}`);
-  return data;
-}
-
 export async function eliminarEvaluador(
-  id: string | number
+  id: string | number,
+  hard?: boolean
 ): Promise<{ message?: string }> {
-  const { data } = await api.delete<{ message?: string }>(`/evaluadores/${id}`);
+  const { data } = await api.delete<{ message?: string }>(`/evaluadores/${id}`, {
+    params: hard ? { hard: 1 } : undefined,
+  });
   return data;
 }
 
-export async function checkEvaluadorActivo(
-  area_id: string | number,
-  nivel_id?: string | number | null
-): Promise<EvaluadorRow | null> {
-  const res = await fetchEvaluadores({
-    area_id,
-    nivel_id: nivel_id ?? undefined,
-    estado: "activo",
-    per_page: 1,
-    page: 1,
-  });
-  return res.data?.[0] ?? null;
-}
-
-/* =========================
-   Tokens de Evaluador (Admin) - opcional
-   ========================= */
-
+/** (Admin) Tokens: opcional */
 export async function emitirTokenEvaluador(
   id: string | number,
   options?: { rotar?: boolean; name?: string }

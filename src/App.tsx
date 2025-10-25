@@ -1,3 +1,4 @@
+// src/App.tsx
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AuthProvider from "./context/AuthProvider";
@@ -15,14 +16,19 @@ import { RequireAuth, RequireRole, RequireAnyRole, RedirectIfAuth } from "./rout
 import LoginPage from "./views/LoginPage";
 import Dashboard from "./views/Dashboard";
 import AdminPage from "./views/AdminPage";
-import EvalPage from "./views/EvalPage";
 import NotAuth from "./views/NotAuth";
 
-// HU4: Panel del responsable (listas de competidores)
+// Responsable
 import CompetidoresList from "./pages/responsable/CompetidoresList";
 import ResponsablePanel from "./pages/responsable/ResponsablePanel";
+import GenerarClasificados from "./pages/responsable/GenerarClasificados";
+
+// Evaluador
+import EvaluadorPanel from "./pages/evaluador/Panel";
+import IngresarNotas from "./pages/evaluador/IngresarNotas";
 
 import "./index.css";
+import LogCambiosNotas from "./pages/responsable/LogCambiosNotas";
 
 export default function App() {
   return (
@@ -57,20 +63,27 @@ export default function App() {
               <Route path="/admin/inscritos" element={<AdminInscritosList />} />
             </Route>
 
-            {/* RESPONSABLE (acepta ambos slugs posibles) */}
+            {/* RESPONSABLE */}
             <Route element={<RequireAnyRole roles={["RESPONSABLE", "RESPONSABLE_ACADEMICO"]} />}>
-              {/* redirige a su panel real */}
               <Route path="/responsable" element={<Navigate to="/responsable/panel" replace />} />
               <Route path="/responsable/panel" element={<ResponsablePanel />} />
-              {/* la lista vive aparte */}
               <Route path="/responsable/competidores" element={<CompetidoresList />} />
+
+              {/* ✅ Ruta canónica */}
+              <Route path="/responsable/clasificacion" element={<GenerarClasificados />} />
+              {/* Alias legacy con redirección */}
+              <Route
+                path="/responsable/clasificados"
+                element={<Navigate to="/responsable/clasificacion" replace />}
+              />
+              <Route path="/responsable/log-notas" element={<LogCambiosNotas />} />
             </Route>
 
             {/* EVALUADOR */}
             <Route element={<RequireRole role="EVALUADOR" />}>
-              {/* redirección para mantener consistencia con pathSegunRoles */}
               <Route path="/evaluador" element={<Navigate to="/evaluador/panel" replace />} />
-              <Route path="/evaluador/panel" element={<EvalPage />} />
+              <Route path="/evaluador/panel" element={<EvaluadorPanel />} />
+              <Route path="/evaluador/ingresar-notas" element={<IngresarNotas />} />
             </Route>
           </Route>
 

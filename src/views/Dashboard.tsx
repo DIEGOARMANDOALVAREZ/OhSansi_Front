@@ -18,7 +18,7 @@ export default function Dashboard() {
       .join("");
   })();
 
-  // Roles normalizados mediante helpers
+  // Roles normalizados
   const puedeAdmin = hasAnyRole(authUser, "ADMIN", "ADMINISTRADOR");
   const puedeEval = hasAnyRole(
     authUser,
@@ -28,7 +28,7 @@ export default function Dashboard() {
   );
   const puedeCom = hasAnyRole(authUser, "COMUNICACIONES");
 
-  // Para la tarjeta de "Evaluaciones" priorizamos su módulo específico
+  // Para "Evaluaciones" priorizamos su módulo específico
   const evaluadorPath =
     hasAnyRole(authUser, "RESPONSABLE", "RESPONSABLE_ACADEMICO")
       ? "/responsable/panel"

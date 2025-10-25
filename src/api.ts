@@ -13,13 +13,13 @@ export const baseURL = import.meta.env.VITE_API_URL || "/api";
 
 export const api = axios.create({
   baseURL,
-  withCredentials: false, // Usamos Bearer. Cambia a true solo si usas Sanctum stateful.
+  withCredentials: false,
   headers: {
     Accept: "application/json",
   },
 });
 
-// ====== Claves de storage (alineadas con services/auth.ts) ======
+// ====== Claves de storage ======
 const TOKEN_KEY = "ohsansi_token";
 const USER_KEY = "usuario";
 const AUTH_KIND_KEY = "auth_kind"; // "admin" | "responsable" | "evaluador"
@@ -59,7 +59,6 @@ if (saved) {
 
 // ====== Interceptor de REQUEST ======
 api.interceptors.request.use((config) => {
-  // Normaliza el objeto de headers a AxiosHeaders
   const headers =
     config.headers instanceof AxiosHeaders
       ? config.headers
@@ -94,6 +93,13 @@ api.interceptors.request.use((config) => {
 });
 
 // ====== Interceptor de RESPONSE ======
+type ValidationErrors = Record<string, string[]>;
+type ValidationErrorShape = {
+  status: 422;
+  message?: string;
+  errors?: ValidationErrors;
+};
+
 api.interceptors.response.use(
   (res) => res,
   (error: AxiosError) => {
@@ -120,19 +126,31 @@ api.interceptors.response.use(
       /\/responsable\/perfil$/.test(reqUrl) ||
       /\/evaluador\/perfil$/.test(reqUrl);
 
-    const data = res.data;
+    // HTML/Unauthorized → limpiar sesión
+    const data = res.data as unknown;
     const isHtml =
       typeof data === "string" &&
       (data.toLowerCase().includes("<!doctype html") ||
         data.toLowerCase().includes("<html") ||
         data.includes("Unauthorized."));
 
-    // Limpia sesión solo si NO es handshake
     if ((status === 401 || status === 403 || status === 419 || isHtml) && !isHandshake) {
       hardClearSession();
       if (window.location.pathname !== "/login") {
         window.location.href = "/login";
       }
+    }
+
+    // 🎯 Mejora: si es 422 adjuntamos un error tipado con los campos
+    if (status === 422) {
+      const payload = res.data as { message?: string; errors?: ValidationErrors } | undefined;
+      const vErr: ValidationErrorShape = {
+        status: 422,
+        message: payload?.message,
+        errors: payload?.errors,
+      };
+      // Rechazamos con objeto rico (no solo AxiosError)
+      return Promise.reject(vErr);
     }
 
     return Promise.reject(error);
