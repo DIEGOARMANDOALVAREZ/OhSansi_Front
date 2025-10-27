@@ -1,5 +1,4 @@
 // src/pages/responsable/ResponsablePanel.tsx
-import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { hasAnyRole } from "../../utils/roleRedirect";
