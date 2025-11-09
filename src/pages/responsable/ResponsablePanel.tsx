@@ -1,4 +1,3 @@
-// src/pages/responsable/ResponsablePanel.tsx
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { hasAnyRole } from "../../utils/roleRedirect";
@@ -125,6 +124,29 @@ export default function ResponsablePanel() {
               Calcula por área y nivel, revisa conteos y confirma con sello/hashing.
             </p>
             <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-cyan-300">
+              Abrir
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="translate-x-0 transition group-hover:translate-x-0.5">
+                <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+            </span>
+          </Link>
+
+          {/* HU9: Preparar entorno con clasificados (Fase final) */}
+          <Link
+            to="/responsable/fase-final"
+            className="group relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/70 p-5 shadow-2xl transition hover:border-emerald-400/40 hover:bg-slate-900/80"
+          >
+            <div className="pointer-events-none absolute -inset-1 -z-10 rounded-3xl bg-gradient-to-br from-emerald-400/20 to-cyan-500/20 opacity-50 blur-2xl transition group-hover:opacity-80" />
+            <div className="mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-emerald-500/20">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M8 12l3 3 5-6" stroke="#10b981" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-white">Fase final: preparar entorno</h3>
+            <p className="mt-1 text-sm text-slate-300">
+              Promueve automáticamente a los clasificados y genera snapshot con auditoría.
+            </p>
+            <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-emerald-300">
               Abrir
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="translate-x-0 transition group-hover:translate-x-0.5">
                 <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />

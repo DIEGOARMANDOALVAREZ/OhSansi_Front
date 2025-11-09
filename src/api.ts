@@ -7,6 +7,7 @@ import axios, { AxiosError, AxiosHeaders } from "axios";
  * - Siempre Accept: application/json
  * - Bearer token desde localStorage en cada request
  * - Manejo de 401/403/419 y respuestas HTML (redir a /login del SPA)
+ * - Patch: NO patear al login por errores de /responsable/fase-final/*
  */
 
 export const baseURL = import.meta.env.VITE_API_URL || "/api";
@@ -100,6 +101,9 @@ type ValidationErrorShape = {
   errors?: ValidationErrors;
 };
 
+// ✅ Rutas seguras que NO deben patear la sesión si dan 401/403/419
+const SAFE_NO_LOGOUT_REGEX = /^\/responsable\/fase-final\//; // <— SOLO FASE FINAL
+
 api.interceptors.response.use(
   (res) => res,
   (error: AxiosError) => {
@@ -108,7 +112,6 @@ api.interceptors.response.use(
     const reqUrl = String(error?.config?.url || "");
 
     // Log útil para depurar
-    // eslint-disable-next-line no-console
     console.error("API ERROR", {
       url: error?.config?.url,
       method: error?.config?.method,
@@ -126,7 +129,10 @@ api.interceptors.response.use(
       /\/responsable\/perfil$/.test(reqUrl) ||
       /\/evaluador\/perfil$/.test(reqUrl);
 
-    // HTML/Unauthorized → limpiar sesión
+    // 🚫 Evitar patear si el error proviene de Fase Final (solo este módulo)
+    const isSafeNoLogout = SAFE_NO_LOGOUT_REGEX.test(reqUrl);
+
+    // HTML/Unauthorized → limpiar sesión (excepto en rutas seguras o handshake)
     const data = res.data as unknown;
     const isHtml =
       typeof data === "string" &&
@@ -134,14 +140,14 @@ api.interceptors.response.use(
         data.toLowerCase().includes("<html") ||
         data.includes("Unauthorized."));
 
-    if ((status === 401 || status === 403 || status === 419 || isHtml) && !isHandshake) {
+    if ((status === 401 || status === 403 || status === 419 || isHtml) && !isHandshake && !isSafeNoLogout) {
       hardClearSession();
       if (window.location.pathname !== "/login") {
         window.location.href = "/login";
       }
     }
 
-    // 🎯 Mejora: si es 422 adjuntamos un error tipado con los campos
+    // 🎯 Si es 422, devolvemos un objeto tipado
     if (status === 422) {
       const payload = res.data as { message?: string; errors?: ValidationErrors } | undefined;
       const vErr: ValidationErrorShape = {
@@ -149,7 +155,6 @@ api.interceptors.response.use(
         message: payload?.message,
         errors: payload?.errors,
       };
-      // Rechazamos con objeto rico (no solo AxiosError)
       return Promise.reject(vErr);
     }
 

@@ -28,6 +28,7 @@ import IngresarNotas from "./pages/evaluador/IngresarNotas";
 
 import "./index.css";
 import LogCambiosNotas from "./pages/responsable/LogCambiosNotas";
+import FaseFinal from "./pages/responsable/FaseFinal";
 
 export default function App() {
   return (
@@ -67,7 +68,7 @@ export default function App() {
               <Route path="/responsable" element={<Navigate to="/responsable/panel" replace />} />
               <Route path="/responsable/panel" element={<ResponsablePanel />} />
               <Route path="/responsable/competidores" element={<CompetidoresList />} />
-
+              <Route path="/responsable/fase-final" element={<FaseFinal />} />
               {/* ✅ Ruta canónica */}
               <Route path="/responsable/clasificacion" element={<GenerarClasificados />} />
               {/* Alias legacy con redirección */}
